@@ -18,6 +18,23 @@ def _file_list():
 def render():
     st.markdown("## 🤖 Agent 执行流程")
 
+    # Use radio instead of tabs to avoid Streamlit 1.57 ElementNode bug
+    mode = st.radio(
+        "模式",
+        ["📋 工作流", "🧠 智能 Agent"],
+        horizontal=True,
+        label_visibility="collapsed",
+    )
+
+    if mode == "📋 工作流":
+        _render_workflow()
+    else:
+        _render_true_agent()
+
+
+def _render_workflow():
+    """Workflow tab with simple conditional rendering."""
+
     wf_options = {
         "pdf_to_word": "📄 PDF → Word 转换",
         "pdf_to_excel": "📊 PDF → Excel 提取",
@@ -27,8 +44,9 @@ def render():
 
     # Upload area
     uploaded = st.file_uploader("📤 上传文件", type=["pdf", "xlsx", "xls", "csv", "docx", "txt"], key="wf_upload")
+    uploaded_name = None
     if uploaded is not None:
-        # Use session state to prevent re-upload on rerun
+        uploaded_name = uploaded.name
         if "last_uploaded" not in st.session_state or st.session_state.last_uploaded != uploaded.name:
             st.session_state.last_uploaded = uploaded.name
             try:
@@ -44,70 +62,49 @@ def render():
                     st.error(f"上传失败: {r.text[:100]}")
             except Exception as e:
                 st.error(f"❌ 无法连接后端: {e}")
+
     files = _file_list()
 
-    if not files:
+    if not files and not uploaded:
         st.info("📭 还没有文件，请先上传")
         st.markdown("---")
         st.markdown("#### 📋 执行历史")
         _show_logs()
         return
 
-    with st.form("wf_form", clear_on_submit=False):
+    if files:
         col1, col2 = st.columns(2)
         with col1:
-            wf = st.selectbox("选择工作流", list(wf_options.keys()), format_func=lambda x: wf_options[x])
+            wf = st.selectbox("选择工作流", list(wf_options.keys()), format_func=lambda x: wf_options[x], key="wf_select_workflow")
+        with col2:
+            fname = st.selectbox("选择文件", files, key="wf_select_file")
 
-        # 右侧：有文件显示选择器，无文件显示提示
-        if files:
-            fname = st.selectbox("选择文件", files, key="wf_file_selector")
-        else:
-            fname = None
-            st.markdown("<div style='color:#5c6072; padding-top:1.5rem;'>请先上传文件</div>", unsafe_allow_html=True)
+        if st.button("🚀 执行工作流", type="primary", use_container_width=True, key="wf_execute_btn") and fname:
+            _execute_workflow(wf, fname)
+    else:
+        # Files just appeared (after upload), will show on next rerun
+        st.info("📭 文件列表为空，上传后请稍候...")
 
-        submitted = st.form_submit_button("🚀 执行工作流", type="primary", width="stretch", disabled=(not files))
+    st.markdown("---")
+    st.markdown("#### 📋 执行历史")
+    _show_logs()
 
-    # ─── Add inline override for form submit buttons ─────
-    st.markdown("""
-    <style>
-    button[data-testid="stFormSubmitButton"] {
-        color: white !important;
-        font-weight: 700 !important;
-    }
-    button[data-testid="stFormSubmitButton"]:hover {
-        color: white !important;
-    }
-    button[data-testid="baseButton-primary"] {
-        color: white !important;
-    }
-    button[data-testid="baseButton-primary"]:hover {
-        color: white !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
 
-    # ─── Process outside form ─────
-    if submitted:
-        if not fname:
-            st.warning("⚠️ 请先上传文件后执行")
-            st.markdown("---")
-            _show_logs()
+def _execute_workflow(wf, fname):
+    """Execute a workflow and display results."""
+    st.markdown("---")
+    st.markdown("#### 📊 执行结果")
+
+    with st.spinner("🤖 Agent 正在执行工作流..."):
+        try:
+            r = requests.post(
+                f"{API_BASE}/api/workflow/run",
+                json={"workflow": wf, "file": fname},
+                timeout=120,
+            )
+        except Exception as e:
+            st.error(f"❌ 连接后端失败: {e}")
             return
-        st.markdown("---")
-        st.markdown("#### 📊 执行结果")
-
-        with st.spinner("🤖 Agent 正在执行工作流..."):
-            try:
-                r = requests.post(
-                    f"{API_BASE}/api/workflow/run",
-                    json={"workflow": wf, "file": fname},
-                    timeout=120,
-                )
-            except Exception as e:
-                st.error(f"❌ 连接后端失败: {e}")
-                st.markdown("---")
-                _show_logs()
-                return
 
         if r.status_code != 200:
             st.error(f"❌ API 错误 ({r.status_code}): {r.text[:300]}")
@@ -234,3 +231,96 @@ def _show_logs():
             )
     except:
         st.warning("无法获取执行记录")
+
+
+def _render_true_agent():
+    """True Agent: user gives a goal, LLM plans and executes autonomously."""
+    st.markdown("### 🧠 智能 Agent")
+    st.markdown(
+        "<div style='color:#8b8fa3; font-size:0.9rem; margin-bottom:1rem;'>"
+        "给 Agent 一个模糊指令，它会自己决定用什么工具、按什么顺序执行。"
+        "<br>例如：<code>帮我处理这批PDF文件</code> 或 <code>整理data目录下的所有文件</code>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    # Show available files
+    try:
+        files = requests.get(f"{API_BASE}/api/files?dir=raw", timeout=3).json().get("files", [])
+        if files:
+            st.markdown(
+                f"<div style='color:#5c6072; font-size:0.8rem; margin-bottom:0.5rem;'>"
+                f"当前有 {len(files)} 个文件可处理: {', '.join(f['name'] for f in files[:5])}"
+                + ("..." if len(files) > 5 else "") + "</div>",
+                unsafe_allow_html=True,
+            )
+    except:
+        pass
+
+    goal = st.text_area(
+        "输入你的指令",
+        placeholder="例如：把data/raw里的PDF都转成Word，然后整理归档",
+        height=80,
+        key="agent_goal",
+    )
+
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        run_btn = st.button("🚀 执行", type="primary", disabled=(not goal.strip()), key="agent_run_btn")
+    with col2:
+        st.markdown(
+            "<div style='padding-top:0.3rem; color:#5c6072; font-size:0.8rem;'>"
+            "Agent 会依次执行多个步骤，请耐心等待</div>",
+            unsafe_allow_html=True,
+        )
+
+    if run_btn and goal.strip():
+        result_area = st.empty()
+        with result_area.container():
+            with st.spinner("🧠 Agent 正在思考并执行..."):
+                try:
+                    resp = requests.post(
+                        f"{API_BASE}/api/agent/think",
+                        json={"goal": goal.strip()},
+                        timeout=180,
+                    )
+                    result_area.empty()
+
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        thinking_log = data.get("thinking_log", "")
+                        result = data.get("result", {})
+
+                        st.success("✅ Agent 任务完成！")
+
+                        # Show thinking log as a nice formatted report
+                        st.markdown("#### 🧠 Agent 思考过程")
+                        log_lines = thinking_log.split("\n")
+                        for line in log_lines:
+                            if line.strip():
+                                st.markdown(f"<div style='font-size:0.85rem;'>{line}</div>", unsafe_allow_html=True)
+
+                        # Show step summary
+                        steps = result.get("steps", [])
+                        if steps:
+                            st.markdown("#### 📊 执行摘要")
+                            done = sum(1 for s in steps if s.get("status") == "completed" or s.get("status") == "success")
+                            st.markdown(
+                                f"<div style='color:#8b8fa3; font-size:0.85rem;'>"
+                                f"共 {len(steps)} 步，成功 {done} 步</div>",
+                                unsafe_allow_html=True,
+                            )
+
+                        # Raw result expander
+                        with st.expander("📄 原始执行数据"):
+                            st.json(result)
+                    else:
+                        st.error(f"❌ Agent 执行失败: HTTP {resp.status_code}")
+                        st.code(resp.text[:500])
+
+                except requests.exceptions.ConnectionError:
+                    result_area.empty()
+                    st.error("❌ 无法连接后端 API，请确认 uvicorn 正在运行")
+                except Exception as e:
+                    result_area.empty()
+                    st.error(f"❌ 执行出错: {str(e)[:300]}")

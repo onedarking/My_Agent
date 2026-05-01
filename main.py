@@ -16,6 +16,7 @@ from agent.tools import (
     get_data_summary, get_logs, log_action
 )
 from agent.orchestrator import AgentOrchestrator, AgentStep
+from agent.true_agent import TrueAgent
 from agent.llm import chat, extract_structured, ask_question
 
 app = FastAPI(title="Office Agent v2", version="2.0.0")
@@ -174,3 +175,28 @@ def logs(limit: int = 50):
 @app.get("/api/health")
 def health():
     return {"status": "ok", "version": "2.0.0"}
+
+
+# ─── True Agent ────────────────────────────────────────
+
+class AgentGoalRequest(BaseModel):
+    goal: str
+
+
+@app.post("/api/agent/run")
+def run_true_agent(req: AgentGoalRequest):
+    """Run the autonomous Agent with a user goal."""
+    agent = TrueAgent()
+    result = agent.run(req.goal)
+    return result
+
+
+@app.post("/api/agent/think")
+def agent_thinking(req: AgentGoalRequest):
+    """Run agent and return readable thinking log."""
+    agent = TrueAgent()
+    result = agent.run(req.goal)
+    return {
+        "thinking_log": agent.get_thinking_log(),
+        "result": result,
+    }
