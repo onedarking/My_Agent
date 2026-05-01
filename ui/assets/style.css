@@ -1,0 +1,287 @@
+/* Office Agent v2 - Premium Dark Theme */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-card: #1e2130;
+  --bg-hover: #252838;
+  --border: #2a2d3e;
+  --text-primary: #e8eaf0;
+  --text-secondary: #8b8fa3;
+  --text-muted: #5c6072;
+  --accent: #6c5ce7;
+  --accent-light: #a29bfe;
+  --accent-glow: rgba(108, 92, 231, 0.15);
+  --success: #00cec9;
+  --warning: #fdcb6e;
+  --danger: #ff7675;
+  --info: #74b9ff;
+  --gradient-1: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  --gradient-2: linear-gradient(135deg, #00cec9, #81ecec);
+  --gradient-3: linear-gradient(135deg, #fd79a8, #e84393);
+  --shadow-card: 0 4px 20px rgba(0,0,0,0.3);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+.stApp {
+  background: var(--bg-primary);
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* Header area */
+header[data-testid="stHeader"] { display: none; }
+.stApp > header { background: transparent !important; }
+
+/* Main container */
+.main .block-container {
+  max-width: 1400px;
+  padding: 1.5rem 2rem;
+}
+
+/* Typography */
+h1, h2, h3 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  color: var(--text-primary) !important;
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: 1.8rem !important; }
+h2 { font-size: 1.4rem !important; }
+h3 { font-size: 1.1rem !important; }
+
+p, li, span, div {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Metric cards */
+div[data-testid="metric-container"] {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s ease;
+}
+div[data-testid="metric-container"]:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+div[data-testid="metric-container"] label {
+  color: var(--text-muted) !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+div[data-testid="metric-container"] div[data-testid="metric-value"] {
+  color: var(--text-primary) !important;
+  font-size: 1.5rem !important;
+  font-weight: 700;
+}
+
+/* Buttons - force override to prevent red */
+.stButton > button,
+.stFormSubmitButton > button,
+button[kind="primaryFormSubmit"] {
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1.2rem;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 10px var(--accent-glow);
+}
+.stButton > button:hover,
+.stFormSubmitButton > button:hover,
+button[kind="primaryFormSubmit"]:hover {
+  background: linear-gradient(135deg, #7c6df7, #b2acfe) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px var(--accent-glow);
+}
+.stButton > button:active {
+  background: linear-gradient(135deg, #5b4dd6, #928cf0) !important;
+}
+
+/* Disabled buttons */
+.stButton > button:disabled,
+.stFormSubmitButton > button:disabled,
+button[kind="primaryFormSubmit"]:disabled {
+  background: #2a2d3e !important;
+  color: #5c6072 !important;
+  box-shadow: none !important;
+}
+.stButton > button[kind="secondary"] {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  box-shadow: none;
+}
+.stButton > button[kind="secondary"]:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* DataFrames */
+div[data-testid="stDataFrame"] {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+div[data-testid="stDataFrame"] table {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+}
+div[data-testid="stDataFrame"] thead tr th {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  font-weight: 600;
+  padding: 0.6rem 0.8rem !important;
+  border-bottom: 2px solid var(--border) !important;
+}
+div[data-testid="stDataFrame"] tbody tr td {
+  padding: 0.5rem 0.8rem !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* Tabs */
+button[data-testid="stTab"] {
+  background: transparent !important;
+  color: var(--text-muted) !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  padding: 0.6rem 1rem !important;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+button[data-testid="stTab"][aria-selected="true"] {
+  color: var(--accent-light) !important;
+  border-bottom-color: var(--accent) !important;
+}
+button[data-testid="stTab"]:hover {
+  color: var(--text-primary) !important;
+}
+
+/* File uploader */
+section[data-testid="stFileUploader"] {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  background: var(--bg-card);
+  transition: all 0.2s;
+}
+section[data-testid="stFileUploader"]:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+/* Select boxes */
+div[data-testid="stSelectbox"] > div > div {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+/* Chat / Text area */
+div[data-testid="stTextInput"] input,
+div[data-testid="stTextArea"] textarea {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+}
+div[data-testid="stTextInput"] input:focus,
+div[data-testid="stTextArea"] textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+/* Status messages */
+div[data-testid="stAlert"] {
+  border-radius: var(--radius-sm);
+  border: none;
+}
+div[data-testid="stAlert"][data-baseweb="notification"] {
+  background: var(--bg-card);
+}
+
+/* Expander */
+details {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 1rem;
+}
+summary {
+  color: var(--text-primary) !important;
+  font-weight: 500;
+}
+
+/* Progress bars */
+div[role="progressbar"] {
+  background: var(--border) !important;
+}
+div[role="progressbar"] > div {
+  background: var(--gradient-1) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+}
+section[data-testid="stSidebar"] .block-container {
+  padding: 1.5rem 1rem;
+}
+
+/* Code blocks */
+code, pre {
+  font-family: 'JetBrains Mono', monospace !important;
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 0.8rem !important;
+}
+
+/* Spinner */
+div[data-testid="stSpinner"] {
+  color: var(--accent-light) !important;
+}
+
+/* Custom card classes (used via markdown/html) */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.2rem;
+  box-shadow: var(--shadow-card);
+}
+.card-accent {
+  border-left: 3px solid var(--accent);
+}
+.card-success {
+  border-left: 3px solid var(--success);
+}
+.card-warning {
+  border-left: 3px solid var(--warning);
+}
